@@ -1,0 +1,120 @@
+<html>
+    <head>
+        <meta http-equiv="Content-Type" content="text/html; charset=utf8">
+            <script language="javascript">
+            // 先定义个方法，这个是不变的写死的， iOS 和Android 这个方法是不同的，具体请参照Android 包内的 index.html 代码
+            function setupWebViewJavascriptBridge(callback) {
+                if (window.WebViewJavascriptBridge) { return callback(WebViewJavascriptBridge); }
+                if (window.WVJBCallbacks) { return window.WVJBCallbacks.push(callback); }
+                window.WVJBCallbacks = [callback];
+                var WVJBIframe = document.createElement('iframe');
+                WVJBIframe.style.display = 'none';
+                WVJBIframe.src = 'wvjbscheme://__BRIDGE_LOADED__';
+                document.documentElement.appendChild(WVJBIframe);
+                setTimeout(function() { document.documentElement.removeChild(WVJBIframe) }, 0)
+            }
+            // 调用native 注册方法之前 ，先调用这个方法进行初始化
+            setupWebViewJavascriptBridge(function(bridge) {
+                                         
+                                        
+                // native调用JS的方法，需要JS先注入一个方法  testJSFunction     data 是native 传入的参数   responseCallback 是Native 的回调方法
+                 bridge.registerHandler('testJSFunction', function(data, responseCallback) {
+                    alert('JS方法被调用:'+data);
+                    responseCallback('js执行过了');
+                 })
+            })
+            function scanClick() {
+                // JS 调用 Native 的方法，需要native 先注入一个方法  scanClick  ， {'foo': 'bar'} 是JS 传入的参数
+                // function(response) 是调用本地方法后的回调
+                WebViewJavascriptBridge.callHandler('scanClick', {'foo': 'bar'}, function(response) {
+                    alert('扫描结果:' + response);
+                    document.getElementById("returnValue").value = response;
+                })
+            }
+            //  同上
+            function shareClick() {
+                var params = {'title':'测试分享的标题','content':'测试分享的内容','url':'http://www.baidu.com'};
+                WebViewJavascriptBridge.callHandler('shareClick',params,function(response) {
+                     alert(response);
+                    document.getElementById("returnValue").value = response;
+                 });
+            }
+            // 同上  ，传入的参数为null
+            
+            function locationClick() {
+                WebViewJavascriptBridge.callHandler('locationClick',null,function(response) {
+                    alert(response);
+                    document.getElementById("returnValue").value = response;
+                });
+            }
+            // 同上
+            function payClick() {
+                var params = {'order_no':'201511120981234','channel':'wx','amount':1,'subject':'粉色外套'};
+                WebViewJavascriptBridge.callHandler('payClick',params,function(response) {
+                                                    alert(response);
+                                                    document.getElementById("returnValue").value = response;
+                                                    });
+            }
+            // 调用native 函数 colorClick ，没有回调函数
+            function colorClick() {
+                var params = {'r':67,'g':20,'b':128,'a':0.5};
+                WebViewJavascriptBridge.callHandler('colorClick',params);
+            }
+          
+            function shake() {
+                // JS调用原生方法    无参数   无返回值
+                WebViewJavascriptBridge.callHandler('shakeClick');
+            }
+            
+            function goBack() {
+                 // JS调用原生方法    无参数   无返回值
+                WebViewJavascriptBridge.callHandler('goNextPage');
+            }
+            
+            // 警告框 函数
+            function asyncAlert(content) {
+                setTimeout(function(){
+                           alert(content);
+                           },1);
+            }
+            </script>
+            </head>
+    
+    <body>
+        <h1>这是按钮调用</h1>
+        <input id = 'scanBtn' type="button" value="扫一扫" onclick="scanClick()"/>
+        <input id = 'locationBtn' type="button" value="获取定位" onclick="locationClick()" />
+        <input id = 'colorBtn' type="button" value="修改背景色" onclick="colorClick()" />
+        <input id = 'shareBtn' type="button" value="分享" onclick="shareClick()" />
+        <input id = 'payBtn' type="button" value="支付" onclick="payClick()" />
+        <input id = 'shakeBtn' type="button" value="摇一摇" onclick="shake()" />
+        <input id = 'goNextPage' type="button" value="跳转下一页" onclick="goBack()" />
+        
+        <h1>这是文件上传</h1>
+
+        <input type="file" />
+        
+        <h1>这是回调结果展示区</h1>
+        <textarea id ="returnValue" type="value" rows="5" cols="50">
+        
+        </textarea>
+        
+        <h4>竖直方向的表头：</h4>
+        <table border="1" style="width:300px;height:600px">
+            <tr>
+                <th>姓名</th>
+                <td>Bill Gates</td>
+            </tr>
+            <tr>
+                <th>电话</th>
+                <td>555 77 854</td>
+            </tr>
+            <tr>
+                <th>传真</th>
+                <td>555 77 855</td>
+            </tr>
+        </table>
+        
+        
+    </body>
+</html>
